@@ -1,6 +1,6 @@
-# VaxCheck — Acoustic Vaccine Vial Integrity Verification
+# <big><b>VaxCheck — Acoustic Vaccine Vial Integrity Verification</b></big>
 
-> Non-destructive, one-second freeze damage verification for sealed vaccine vials using solenoid acoustic excitation, MEMS I2S sensing, and machine learning.
+> Non-destructive freeze damage verification in seconds for sealed vaccine vials using solenoid acoustic excitation, MEMS I2S sensing, and machine learning.
 
 ![VaxCheck Hardware Testing Interface](docs/screenshots/Vaxcheck_image.png)
 
@@ -12,16 +12,8 @@ permanent and invisible — a thawed vial looks completely normal. Studies found
 14–35% of cold-chain refrigerators/shipments exposed vaccines to freezing; the
 only field check, the WHO Shake Test, takes 15–30 minutes, destroys a control
 vial, and is judged by eye. VaxCheck reads the same physics — aggregation
-changes how the vial's ring decays — in one second: healthy vials ring at
+changes how the vial's ring decays — in seconds: healthy vials ring at
 τ ≈ 40 ms, freeze-damaged at τ ≈ 12 ms (pilot data, Cohen's d ≈ 16).
-
-## Status — honest
-Engineering prototype with pilot data. Physics separation is large; classifier
-accuracy is data-volume-limited (reported with stratified 5-fold CV). Next:
-blinded field validation against the WHO Shake Test. Screening tool, not a
-diagnostic. Built for ForgeHacks 2026 (AI + Healthcare).
-
-Demo video: [FILL — YouTube URL]
 
 ---
 
@@ -74,18 +66,11 @@ Demo video: [FILL — YouTube URL]
 
 ---
 
-## Acoustic Resonance Diagnostics
-
-![Acoustic Resonance Analysis](results/baseline_report.png)
-
----
-
 ## Repository Structure
 
 ```text
 VaxcheckSoftware/
 ├── README.md                    # Project documentation
-├── LICENSE                      # MIT License
 ├── start_vaxcheck.bat           # 1-click launcher for all 3 web services
 ├── analyze_strikes.py           # Feature extraction engine (Hilbert, Prony, FFT)
 ├── capture_strikes.py           # Standalone serial recorder CLI
