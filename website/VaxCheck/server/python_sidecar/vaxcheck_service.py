@@ -284,7 +284,7 @@ def read_binary_frame():
 def strike():
     data = request.json or {}
     count = data.get("count", 3)
-    delay_s = float(data.get("delay_s", 1.2))
+    delay_s = float(data.get("delay_s", 10.0))
     
     if not serial_port or not serial_port.is_open:
         return jsonify({"error": "Serial port not connected"}), 400

@@ -89,7 +89,7 @@ export default function GuidedTestPage({ currentUser, onNavigateToBatch }) {
     if (isTesting) return;
     setError(''); setIsTesting(true); setTestResult(null);
     try {
-      const r = await api.triggerStrike(vialBatchId, vaccineName, 3, currentUser?.id || null, 1.2);
+      const r = await api.triggerStrike(vialBatchId, vaccineName, 3, currentUser?.id || null, 10.0);
       const v = r.classification_result || r.verdict || 'INCONCLUSIVE';
       const sd = r.sidecar_data || r;
       setTestResult({
@@ -218,8 +218,8 @@ export default function GuidedTestPage({ currentUser, onNavigateToBatch }) {
               <div style={{ background:'#0F172A', borderRadius:16, padding:'32px 24px', textAlign:'center' }}>
                 <div style={{ width:68, height:68, borderRadius:'50%', background:'rgba(56,189,248,0.15)', border:'2px solid rgba(56,189,248,0.4)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}><Activity size={32} color="#38BDF8" className="spin" /></div>
                 <h3 style={{ color:'#F8FAFC', fontSize:'1.25rem', fontWeight:800, margin:'0 0 6px' }}>Acoustic Test in Progress</h3>
-                <p style={{ color:'#94A3B8', fontSize:'.88rem', margin:'0 0 6px' }}>ESP32 firing 3 strikes within ~5 seconds. Audio captured & analyzed server-side.</p>
-                <p style={{ color:'#38BDF8', fontSize:'.82rem', fontWeight:700, margin:'0 0 20px' }}>~5 seconds — do not unplug USB.</p>
+                <p style={{ color:'#94A3B8', fontSize:'.88rem', margin:'0 0 6px' }}>ESP32 firing 3 standardized strikes with ≥10s fluid settling delay.</p>
+                <p style={{ color:'#38BDF8', fontSize:'.82rem', fontWeight:700, margin:'0 0 20px' }}>~35 seconds (fluid settling physics) — do not unplug USB.</p>
                 <div style={{ display:'flex', justifyContent:'center', gap:12, marginBottom:20 }}>
                   {[1,2,3].map(n => <div key={n} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:999, background:'rgba(255,255,255,0.06)', border:'1.5px solid rgba(56,189,248,0.3)', color:'#94A3B8', fontSize:'.82rem', fontWeight:700 }}><Activity size={14} color="#38BDF8" /><span>Strike {n}</span></div>)}
                 </div>
@@ -345,7 +345,7 @@ export default function GuidedTestPage({ currentUser, onNavigateToBatch }) {
       <div style={{ marginTop:32, padding:'20px 24px', background:'#F8FAFC', border:'1px solid #E2E8F0', borderRadius:16 }}>
         <div style={{ fontSize:'.75rem', fontWeight:800, color:'#475569', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12 }}>Key Advantages</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:14 }}>
-          {[{l:'Fast',d:'~5s per 3-strike cycle'},{l:'Objective',d:'SVM on real data'},{l:'Non-destructive',d:'Vial stays sealed'},{l:'Digital Record',d:'MongoDB storage'},{l:'Accessible',d:'One-click web trigger'},{l:'Safety',d:'Prevents freeze-damaged lots'}].map((x,i) => (
+          {[{l:'Rigorous',d:'≥10s fluid settling between strikes'},{l:'Objective',d:'SVM on real data'},{l:'Non-destructive',d:'Vial stays sealed'},{l:'Digital Record',d:'MongoDB storage'},{l:'Accessible',d:'One-click web trigger'},{l:'Safety',d:'Prevents freeze-damaged lots'}].map((x,i) => (
             <div key={i}><div style={{ display:'flex', alignItems:'center', gap:5, color:'#0F172A', fontWeight:800, fontSize:'.86rem' }}><Check size={14} color="#10B981" /><span>{x.l}</span></div><p style={{ color:'#64748B', fontSize:'.76rem', margin:'2px 0 0' }}>{x.d}</p></div>
           ))}
         </div>

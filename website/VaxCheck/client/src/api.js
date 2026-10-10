@@ -239,7 +239,7 @@ export const api = {
     });
   },
 
-  async triggerStrike(vialBatchId, vaccineName, strikesCount = 3, workerId = null, delayS = 1.2) {
+  async triggerStrike(vialBatchId, vaccineName, strikesCount = 3, workerId = null, delayS = 10.0) {
     return request('/hardware/strike', {
       method: 'POST',
       body: JSON.stringify({

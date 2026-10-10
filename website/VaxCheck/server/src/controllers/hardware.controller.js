@@ -66,12 +66,12 @@ export const triggerStrike = asyncHandler(async (req, res) => {
 
   // 1. Call sidecar
   const count = strikes_count || 3;
-  const delay_s = req.body.delay_s !== undefined ? Number(req.body.delay_s) : 1.2;
+  const delay_s = req.body.delay_s !== undefined ? Number(req.body.delay_s) : 10.0;
   const response = await fetch(`${PYTHON_SIDECAR_URL}/strike`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ count, delay_s }),
-    signal: AbortSignal.timeout(30000), // 30s timeout
+    signal: AbortSignal.timeout(60000), // 60s timeout for multi-strike settling protocol
   });
 
   if (!response.ok) {
