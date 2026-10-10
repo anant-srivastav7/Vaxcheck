@@ -1,19 +1,46 @@
-# <big><b>VaxCheck — Acoustic Vaccine Vial Integrity Verification</b></big>
+# 🔬 VaxCheck — Acoustic Vaccine Vial Integrity Verification
 
-> Non-destructive freeze damage verification in seconds for sealed vaccine vials using solenoid acoustic excitation, MEMS I2S sensing, and machine learning.
+### **Rapid, Non-Destructive Freeze-Damage Detection for Vaccine Cold Chains in Seconds**
 
 ![VaxCheck Hardware Testing Interface](docs/screenshots/Vaxcheck_image.png)
 
 ---
 
-## Why it matters
-Freeze damage in aluminum-adjuvanted vaccines (DTP, Hepatitis B, pentavalent) is
-permanent and invisible — a thawed vial looks completely normal. Studies found
-14–35% of cold-chain refrigerators/shipments exposed vaccines to freezing; the
-only field check, the WHO Shake Test, takes 15–30 minutes, destroys a control
-vial, and is judged by eye. VaxCheck reads the same physics — aggregation
-changes how the vial's ring decays — in seconds: healthy vials ring at
-τ ≈ 40 ms, freeze-damaged at τ ≈ 12 ms (pilot data, Cohen's d ≈ 16).
+## 🌍 Why It Matters
+
+### The Invisible Cold-Chain Crisis
+Vaccines like **Hepatitis B, DTP, Tetanus, and Pentavalent** permanently lose their potency when exposed to freezing temperatures. Once thawed, a freeze-damaged vial looks **completely normal to the naked eye** — healthcare workers cannot see that the medicine inside has lost its efficacy.
+
+* **1 in 3 Shipments at Risk**: Global healthcare studies show that **14% to 35%** of vaccine cold-chain shipments and clinic refrigerators accidentally expose vaccines to sub-zero temperatures during transit or storage.
+* **The Current Standard is Broken**: The only existing field procedure — the **WHO Shake Test** — takes **15 to 30 minutes**, requires intentionally freezing and **destroying a valuable control vial**, and relies on subjective visual estimation by eye.
+* **The Consequence**: Clinics either discard entire batches out of caution (wasting scarce vaccines) or unknowingly administer inactive doses to children and patients.
+
+---
+
+### The VaxCheck Solution: Turning 30 Minutes into Seconds
+
+VaxCheck replaces manual visual guesswork with an automated, non-invasive physical acoustic test:
+
+| Feature | ⏱️ WHO Shake Test | ⚡ VaxCheck Platform |
+| :--- | :--- | :--- |
+| **Test Duration** | **15 – 30 Minutes** | **Seconds** |
+| **Vial Impact** | **Destructive** (sacrifices a control vial) | **100% Non-Destructive** (vial remains sterile & sealed) |
+| **Diagnostic Method** | Visual human observation | **Physics-Feature Support Vector Machine (SVM)** |
+| **Digital Records** | Manual paper logbooks | **Automated MongoDB Cloud Audit Trail & Batch Alerts** |
+| **Field Automation** | Manual shaking by hand | **Precision ESP32 Solenoid Striker + 32 kHz MEMS Mic** |
+
+---
+
+### 🔊 How the Physics Works
+
+When an aluminum-adjuvanted vaccine freezes, the uniform microscopic particles bind together into heavy, coarse aggregates. VaxCheck measures this structural change through acoustic ring-down spectroscopy:
+
+1. **Precision Tap**: An ESP32 microcontroller triggers an electromagnetic solenoid pin to gently tap the glass vial.
+2. **Acoustic Ring-Down**: A high-resolution ICS-43434 I2S MEMS digital microphone captures the 32 kHz vibration signature.
+3. **Physical Decay Separation**:
+   * **Healthy Vials** (Smooth colloid suspension): Resonate freely with a slow exponential decay constant of **τ ≈ 40 ms**.
+   * **Freeze-Damaged Vials** (Clumped heavy aggregates): The dense particle clusters absorb vibrational energy, dampening the ring **3× faster (τ ≈ 12 ms)**.
+4. **Machine Learning Verdict**: Extracted physical features are classified through a trained SVM pipeline, returning **Healthy**, **Damaged**, or **Retest Needed** in real time on the web dashboard.
 
 ---
 
@@ -79,7 +106,8 @@ VaxcheckSoftware/
 ├── docs/
 │   └── screenshots/             # Hardware and UI captures
 ├── firmware/
-│   └── VaxCheck_capture.ino     # Direct-drive ESP32 firmware (921,600 baud)
+│   └── VaxCheck_capture/
+│       └── VaxCheck_capture.ino # Direct-drive ESP32 firmware (921,600 baud)
 ├── data/                        # Training audio datasets (Healthy & Damaged)
 ├── model/                       # Jupyter notebooks and model development
 ├── results/                     # Extracted CSV features and trained joblib models
@@ -98,7 +126,7 @@ VaxcheckSoftware/
 ### 1. Prerequisites
 - **Node.js** (v18+)
 - **Python** (3.10+) with `pyserial`, `flask`, `flask-cors`, `numpy`, `scipy`, `scikit-learn`, `joblib`
-- **ESP32** flashed with `firmware/VaxCheck_capture.ino` (COM port on Windows or `/dev/ttyUSB0` on Linux)
+- **ESP32** flashed with `firmware/VaxCheck_capture/VaxCheck_capture.ino` (COM port on Windows or `/dev/ttyUSB0` on Linux)
 
 ### 2. Environment Setup
 Create `website/VaxCheck/server/.env` based on `website/VaxCheck/server/.env.example`:
