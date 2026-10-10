@@ -1,0 +1,810 @@
+openapi: 3.0.3
+info:
+  title: VaxCheck Device & Clinic Management API
+  description: |
+    Official API specification for the VaxCheck vaccine vial acoustic freeze-damage detection platform.
+    Connects physical ESP32 testing hardware, simulators, and clinic tablet web applications.
+  version: 1.0.0
+  contact:
+    name: VaxCheck Hardware & Software Team
+servers:
+  - url: /api/v1
+    description: VaxCheck Core API v1
+
+paths:
+  /tests:
+    post:
+      summary: Submit completed test result(s)
+      description: |
+        Used by the ESP32 hardware device (or simulator) to submit completed acoustic test results.
+        Supports both single live test results and batches of historical queued results (for offline resilience when WiFi reconnects).
+      security:
+        - DeviceBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/SingleTestSubmission'
+                - $ref: '#/components/schemas/BatchTestSubmission'
+            examples:
+              single:
+                summary: Single Live Test Result
+                value:
+                  device_id: "dev-vax-001"
+                  device_auth_token: "vax_tok_9b2e8a1f4c3d"
+                  vial_batch_id: "MOD-2024-B882"
+                  timestamp: "2026-10-09T14:15:30Z"
+                  classification_result: "PASS"
+                  confidence_score: 0.94
+                  strikes_used: 3
+                  worker_id: "usr-hw-101"
+                  notes: "Routine intake test at St. Jude Clinic"
+                  strikes:
+                    - strike_number: 1
+                      peak_amplitude: 0.88
+                      decay_time_constant: 14.2
+                      dominant_frequency_hz: 4850.5
+                    - strike_number: 2
+                      peak_amplitude: 0.86
+                      decay_time_constant: 14.0
+                      dominant_frequency_hz: 4860.0
+                    - strike_number: 3
+                      peak_amplitude: 0.87
+                      decay_time_constant: 14.1
+                      dominant_frequency_hz: 4855.2
+              batch_offline:
+                summary: Batch Queued Offline Results (Sync-on-reconnect)
+                value:
+                  device_id: "dev-vax-001"
+                  device_auth_token: "vax_tok_9b2e8a1f4c3d"
+                  tests:
+                    - vial_batch_id: "PFI-2024-X419"
+                      timestamp: "2026-10-09T15:30:10Z"
+                      classification_result: "FAIL"
+                      confidence_score: 0.91
+                      strikes_used: 3
+                      strikes:
+                        - strike_number: 1
+                          peak_amplitude: 0.42
+                          decay_time_constant: 32.5
+                          dominant_frequency_hz: 3120.0
+                    - vial_batch_id: "PFI-2024-X419"
+                      timestamp: "2026-10-09T15:32:45Z"
+                      classification_result: "FAIL"
+                      confidence_score: 0.89
+                      strikes_used: 3
+      responses:
+        '201':
+          description: Test result(s) successfully recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  inserted_count:
+                    type: integer
+                    example: 1
+                  test_ids:
+                    type: array
+                    items:
+                      type: string
+                    example: ["test-uuid-1"]
+                  batch_alert:
+                    type: object
+                    nullable: true
+                    properties:
+                      vial_batch_id:
+                        type: string
+                      fail_count:
+                        type: integer
+                      total_tests:
+                        type: integer
+                      alert_message:
+                        type: string
+        '400':
+          description: Invalid payload or validation failure
+        '401':
+          description: Invalid or missing device authentication token
+        '404':
+          description: Device not found or inactive
+
+    get:
+      summary: List and filter test history
+      description: Retrieve historical test records with optional filters (clinic, device, batch, date, verdict).
+      parameters:
+        - name: clinic_id
+          in: query
+          schema:
+            type: string
+        - name: device_id
+          in: query
+          schema:
+            type: string
+        - name: vial_batch_id
+          in: query
+          schema:
+            type: string
+        - name: classification_result
+          in: query
+          schema:
+            type: string
+            enum: [PASS, FAIL, INCONCLUSIVE]
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Filtered test list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  tests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestRecord'
+
+  /tests/{test_id}:
+    get:
+      summary: Get full test detail including acoustic strike features
+      parameters:
+        - name: test_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Full test detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetail'
+        '404':
+          description: Test not found
+
+  /devices/{device_id}/start_test:
+    post:
+      summary: Remotely trigger an online device to start a test cycle
+      description: |
+        Called from the web app when a health worker starts a test via tablet rather than the physical button.
+        Enqueues a START_TEST command with the specified vial batch ID for the device to pick up on its next poll cycle.
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vial_batch_id
+              properties:
+                vial_batch_id:
+                  type: string
+                  example: "MOD-2024-B882"
+                worker_id:
+                  type: string
+                  example: "usr-hw-101"
+      responses:
+        '200':
+          description: Test trigger command enqueued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  command_id:
+                    type: string
+                  status:
+                    type: string
+                    example: "PENDING"
+                  device_status:
+                    type: string
+                    example: "ONLINE"
+        '404':
+          description: Device not found
+
+  /devices/{device_id}/status:
+    get:
+      summary: Get device status, online state, and battery level
+      description: Devices that have checked in within the past 60 seconds are considered ONLINE.
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Device status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceStatus'
+        '404':
+          description: Device not found
+
+  /devices/{device_id}/pending_commands:
+    get:
+      summary: ESP32 command polling endpoint
+      description: |
+        The ESP32 microcontroller polls this endpoint periodically (e.g. every 3-5 seconds).
+        Returns any pending remote commands (like START_TEST) for this device.
+      security:
+        - DeviceBearerAuth: []
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of pending commands
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commands:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeviceCommand'
+
+  /devices/{device_id}/commands/{command_id}/ack:
+    post:
+      summary: Acknowledge or complete a device command
+      security:
+        - DeviceBearerAuth: []
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: command_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ACKNOWLEDGED, COMPLETED, FAILED]
+      responses:
+        '200':
+          description: Command status updated
+
+  /devices/{device_id}/heartbeat:
+    post:
+      summary: Device heartbeat / telemetry check-in
+      description: ESP32 calls this to update last_seen_at and battery_level without submitting a test.
+      security:
+        - DeviceBearerAuth: []
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                battery_level:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 1
+                  example: 0.88
+                firmware_version:
+                  type: string
+                  example: "v1.0.4-tinyML"
+      responses:
+        '200':
+          description: Heartbeat recorded
+
+  /devices:
+    get:
+      summary: List all registered devices
+      parameters:
+        - name: clinic_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceDetail'
+    post:
+      summary: Register a new device (generates unique auth token)
+      description: Admin flow to issue a device API token for flashing into ESP32 firmware.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - clinic_id
+              properties:
+                name:
+                  type: string
+                  example: "ESP32 Solenoid Unit #4"
+                clinic_id:
+                  type: string
+                  example: "clinic-central"
+                firmware_version:
+                  type: string
+                  default: "v1.0.0"
+      responses:
+        '201':
+          description: Device registered successfully with provisioning token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceRegistered'
+
+  /batches:
+    get:
+      summary: List all vaccine batches with aggregate test counts and failure analysis
+      description: Flag batches with 3 or more failures or high fail-rate as concerning.
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatchSummary'
+
+  /batches/{batch_id}:
+    get:
+      summary: Get details and all test records for a specific vaccine batch
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDetail'
+
+  /clinics:
+    get:
+      summary: List clinics
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Clinic'
+    post:
+      summary: Add a new clinic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                location:
+                  type: string
+
+  /stats/overview:
+    get:
+      summary: High-level dashboard statistics
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_tests:
+                    type: integer
+                  pass_count:
+                    type: integer
+                  fail_count:
+                    type: integer
+                  inconclusive_count:
+                    type: integer
+                  active_devices_count:
+                    type: integer
+                  concerning_batches_count:
+                    type: integer
+
+  /auth/login:
+    post:
+      summary: Health worker or admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "worker1"
+                password:
+                  type: string
+                  example: "vaxcheck2026"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+
+  /auth/me:
+    get:
+      summary: Get current authenticated worker/admin profile
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+components:
+  securitySchemes:
+    DeviceBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+      description: Unique device authentication token generated at device registration.
+
+  schemas:
+    StrikeData:
+      type: object
+      required:
+        - strike_number
+      properties:
+        strike_number:
+          type: integer
+          example: 1
+        peak_amplitude:
+          type: number
+          format: float
+          description: Normalized acoustic peak microphone amplitude (0.0 to 1.0)
+          example: 0.842
+        decay_time_constant:
+          type: number
+          format: float
+          description: Exponential acoustic ring-down decay time in milliseconds
+          example: 14.8
+        dominant_frequency_hz:
+          type: number
+          format: float
+          description: FFT peak resonance frequency in Hertz (frozen vials shift frequency)
+          example: 4890.5
+
+    SingleTestSubmission:
+      type: object
+      required:
+        - device_id
+        - vial_batch_id
+        - timestamp
+        - classification_result
+        - confidence_score
+        - strikes_used
+      properties:
+        device_id:
+          type: string
+          example: "dev-01"
+        device_auth_token:
+          type: string
+          description: Optional in body if provided via Authorization Bearer header
+          example: "vax_tok_..."
+        vial_batch_id:
+          type: string
+          example: "MOD-2024-B882"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-10-09T14:15:30Z"
+        classification_result:
+          type: string
+          enum: [PASS, FAIL, INCONCLUSIVE]
+          example: "PASS"
+        confidence_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.94
+        strikes_used:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 3
+        worker_id:
+          type: string
+          nullable: true
+          example: "usr-01"
+        notes:
+          type: string
+          nullable: true
+        strikes:
+          type: array
+          items:
+            $ref: '#/components/schemas/StrikeData'
+
+    BatchTestSubmission:
+      type: object
+      required:
+        - device_id
+        - tests
+      properties:
+        device_id:
+          type: string
+          example: "dev-01"
+        device_auth_token:
+          type: string
+        tests:
+          type: array
+          items:
+            type: object
+            required:
+              - vial_batch_id
+              - timestamp
+              - classification_result
+              - confidence_score
+              - strikes_used
+            properties:
+              vial_batch_id:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              classification_result:
+                type: string
+                enum: [PASS, FAIL, INCONCLUSIVE]
+              confidence_score:
+                type: number
+                format: float
+              strikes_used:
+                type: integer
+              worker_id:
+                type: string
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+              strikes:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StrikeData'
+
+    TestRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        device_id:
+          type: string
+        device_name:
+          type: string
+        clinic_name:
+          type: string
+        vial_batch_id:
+          type: string
+        tested_at:
+          type: string
+        received_at:
+          type: string
+        classification_result:
+          type: string
+          enum: [PASS, FAIL, INCONCLUSIVE]
+        confidence_score:
+          type: number
+        strikes_used:
+          type: integer
+        worker_name:
+          type: string
+
+    TestDetail:
+      allOf:
+        - $ref: '#/components/schemas/TestRecord'
+        - type: object
+          properties:
+            notes:
+              type: string
+            strikes:
+              type: array
+              items:
+                $ref: '#/components/schemas/StrikeData'
+
+    DeviceStatus:
+      type: object
+      properties:
+        device_id:
+          type: string
+        name:
+          type: string
+        clinic_id:
+          type: string
+        clinic_name:
+          type: string
+        is_online:
+          type: boolean
+        last_seen_at:
+          type: string
+        battery_level:
+          type: number
+        firmware_version:
+          type: string
+
+    DeviceDetail:
+      allOf:
+        - $ref: '#/components/schemas/DeviceStatus'
+        - type: object
+          properties:
+            registered_at:
+              type: string
+            is_active:
+              type: boolean
+
+    DeviceRegistered:
+      type: object
+      properties:
+        device_id:
+          type: string
+        name:
+          type: string
+        auth_token:
+          type: string
+          description: Copy this token to flash onto ESP32 firmware!
+        clinic_id:
+          type: string
+        registered_at:
+          type: string
+
+    DeviceCommand:
+      type: object
+      properties:
+        id:
+          type: string
+        device_id:
+          type: string
+        command_type:
+          type: string
+          example: "START_TEST"
+        payload:
+          type: object
+        created_at:
+          type: string
+        status:
+          type: string
+
+    BatchSummary:
+      type: object
+      properties:
+        batch_id:
+          type: string
+        vaccine_name:
+          type: string
+        manufacturer:
+          type: string
+        total_tests:
+          type: integer
+        pass_count:
+          type: integer
+        fail_count:
+          type: integer
+        inconclusive_count:
+          type: integer
+        failure_rate:
+          type: number
+        is_concerning:
+          type: boolean
+          description: True if 3 or more vials failed or failure rate >= 30%
+        first_tested_at:
+          type: string
+        last_tested_at:
+          type: string
+
+    BatchDetail:
+      allOf:
+        - $ref: '#/components/schemas/BatchSummary'
+        - type: object
+          properties:
+            tests:
+              type: array
+              items:
+                $ref: '#/components/schemas/TestRecord'
+
+    Clinic:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        device_count:
+          type: integer
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [worker, admin]
+        clinic_id:
+          type: string
+        clinic_name:
+          type: string

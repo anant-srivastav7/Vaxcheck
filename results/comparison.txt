@@ -1,0 +1,9 @@
+tau_env_ms        damaged=    72.172±76.639 healthy=    52.240±28.748  Cohen's d=   0.34  t=   1.69
+prony_tau_ms      damaged=     5.551± 3.766 healthy=     4.609± 3.681  Cohen's d=   0.25  t=   1.18
+prony_freq_hz     damaged=  5459.247±1925.894 healthy=  6017.929±2029.559  Cohen's d=  -0.28  t=  -1.32
+peak              damaged= 32612.640±144.839 healthy= 32600.520±166.203  Cohen's d=   0.08  t=   0.38
+snr_db            damaged=    36.359± 0.974 healthy=    36.500± 1.359  Cohen's d=  -0.12  t=  -0.59
+band_low_pct      damaged=     0.000± 0.000 healthy=     0.000± 0.000  Cohen's d=    nan  t=    nan
+band_mid_pct      damaged=     6.350± 2.401 healthy=     6.544± 2.329  Cohen's d=  -0.08  t=  -0.41
+band_high_pct     damaged=    72.387± 3.064 healthy=    71.024± 2.946  Cohen's d=   0.45  t=   2.25
+ring_energy       damaged=255041353.471±32855468.186 healthy=257930516.371±28670996.266  Cohen's d=  -0.09  t=  -0.46

@@ -1,0 +1,29 @@
+{
+  "name": "vaxcheck-server",
+  "version": "2.0.0",
+  "description": "VaxCheck Vaccine Acoustic Analysis Server — MongoDB / ES Modules",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "seed": "node src/db/seed.js",
+    "sidecar": "python python_sidecar/vaxcheck_service.py",
+    "train:model": "python python_sidecar/train_model.py"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.0",
+    "nodemailer": "^10.0.3",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

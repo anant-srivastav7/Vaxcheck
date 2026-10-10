@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+*/node_modules/
+*/*/node_modules/
+*/*/*/node_modules/
+
+# Environment variables & secrets
+.env
+*.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+*.bak
+*.db-shm
+*.db-wal
+
+# Python cache & virtual environments
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Audio captures / temporary test recordings
+website/VaxCheck/server/python_sidecar/captures/
+website/VaxCheck/server/captures/
+live_captures/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
