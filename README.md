@@ -2,7 +2,7 @@
 
 > Non-destructive, one-second freeze damage verification for sealed vaccine vials using solenoid acoustic excitation, MEMS I2S sensing, and machine learning.
 
-![VaxCheck Hardware Testing Interface](docs/screenshots/ui_trigger.png)
+![VaxCheck Hardware Testing Interface](docs/screenshots/Vaxcheck_image.png)
 
 ---
 
