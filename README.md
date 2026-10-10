@@ -1,4 +1,4 @@
-# 🔬 VaxCheck — Acoustic Vaccine Vial Integrity Verification
+# VaxCheck — Acoustic Vaccine Vial Integrity Verification
 
 ### **Rapid, Non-Destructive Freeze-Damage Detection for Vaccine Cold Chains in Seconds**
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 🌍 Why It Matters
+## Why It Matters
 
 ### The Invisible Cold-Chain Crisis
 Vaccines like **Hepatitis B, DTP, Tetanus, and Pentavalent** permanently lose their potency when exposed to freezing temperatures. Once thawed, a freeze-damaged vial looks **completely normal to the naked eye** — healthcare workers cannot see that the medicine inside has lost its efficacy.
@@ -21,7 +21,7 @@ Vaccines like **Hepatitis B, DTP, Tetanus, and Pentavalent** permanently lose th
 
 VaxCheck replaces manual visual guesswork with an automated, non-invasive physical acoustic test:
 
-| Feature | ⏱️ WHO Shake Test | ⚡ VaxCheck Platform |
+| Feature |  WHO Shake Test |  VaxCheck Platform |
 | :--- | :--- | :--- |
 | **Test Duration** | **15 – 30 Minutes** | **Seconds** |
 | **Vial Impact** | **Destructive** (sacrifices a control vial) | **100% Non-Destructive** (vial remains sterile & sealed) |
@@ -31,7 +31,7 @@ VaxCheck replaces manual visual guesswork with an automated, non-invasive physic
 
 ---
 
-### 🔊 How the Physics Works
+### How the Physics Works
 
 When an aluminum-adjuvanted vaccine freezes, the uniform microscopic particles bind together into heavy, coarse aggregates. VaxCheck measures this structural change through acoustic ring-down spectroscopy:
 
